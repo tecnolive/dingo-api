@@ -61,6 +61,8 @@ class Response extends IlluminateResponse
      */
     protected static $events;
 
+    protected $originalContent;
+
     /**
      * Create a new response instance.
      *
@@ -124,12 +126,12 @@ class Response extends IlluminateResponse
      */
     public function morph($format = 'json')
     {
-        $content = $this->getOriginalContent() ?? '';
+        $this->originalContent = $this->getOriginalContent() ?? '';
 
         $this->fireMorphingEvent();
 
-        if (isset(static::$transformer) && static::$transformer->transformableResponse($content)) {
-            $content = static::$transformer->transform($content);
+        if (isset(static::$transformer) && static::$transformer->transformableResponse($this->originalContent)) {
+            $this->originalContent = static::$transformer->transform($this->originalContent);
         }
 
         $formatter = static::getFormatter($format);
@@ -146,14 +148,14 @@ class Response extends IlluminateResponse
 
         $this->fireMorphedEvent();
 
-        if ($content instanceof EloquentModel) {
-            $this->content = $formatter->formatEloquentModel($content);
-        } elseif ($content instanceof EloquentCollection) {
-            $this->content = $formatter->formatEloquentCollection($content);
-        } elseif (is_array($content) || $content instanceof ArrayObject || $content instanceof Arrayable) {
-            $this->content = $formatter->formatArray($content);
-        } elseif (is_string($content)) {
-            $this->content = $content;
+        if ($this->originalContent instanceof EloquentModel) {
+            $this->content = $formatter->formatEloquentModel($this->originalContent);
+        } elseif ($this->originalContent instanceof EloquentCollection) {
+            $this->content = $formatter->formatEloquentCollection($this->originalContent);
+        } elseif (is_array($this->originalContent) || $this->originalContent instanceof ArrayObject || $this->originalContent instanceof Arrayable) {
+            $this->content = $formatter->formatArray($this->originalContent);
+        } elseif (is_string($this->originalContent)) {
+            $this->content = $this->originalContent;
         } else {            
             if (! empty($defaultContentType)) {
                 $this->headers->set('Content-Type', $defaultContentType);
@@ -174,7 +176,7 @@ class Response extends IlluminateResponse
             return;
         }
 
-        static::$events->dispatch(new ResponseWasMorphed($this, $this->content));
+        static::$events->dispatch(new ResponseWasMorphed($this, $this->originalContent));
     }
 
     /**
@@ -188,7 +190,7 @@ class Response extends IlluminateResponse
             return;
         }
 
-        static::$events->dispatch(new ResponseIsMorphing($this, $this->content));
+        static::$events->dispatch(new ResponseIsMorphing($this, $this->originalContent));
     }
 
     /**
