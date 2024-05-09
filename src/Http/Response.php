@@ -124,12 +124,12 @@ class Response extends IlluminateResponse
      */
     public function morph($format = 'json')
     {
-        $this->content = $this->getOriginalContent() ?? '';
+        $content = $this->getOriginalContent() ?? '';
 
         $this->fireMorphingEvent();
 
-        if (isset(static::$transformer) && static::$transformer->transformableResponse($this->content)) {
-            $this->content = static::$transformer->transform($this->content);
+        if (isset(static::$transformer) && static::$transformer->transformableResponse($content)) {
+            $content = static::$transformer->transform($content);
         }
 
         $formatter = static::getFormatter($format);
@@ -146,13 +146,15 @@ class Response extends IlluminateResponse
 
         $this->fireMorphedEvent();
 
-        if ($this->content instanceof EloquentModel) {
-            $this->content = $formatter->formatEloquentModel($this->content);
-        } elseif ($this->content instanceof EloquentCollection) {
-            $this->content = $formatter->formatEloquentCollection($this->content);
-        } elseif (is_array($this->content) || $this->content instanceof ArrayObject || $this->content instanceof Arrayable) {
-            $this->content = $formatter->formatArray($this->content);
-        } else {
+        if ($content instanceof EloquentModel) {
+            $this->content = $formatter->formatEloquentModel($content);
+        } elseif ($content instanceof EloquentCollection) {
+            $this->content = $formatter->formatEloquentCollection($content);
+        } elseif (is_array($content) || $content instanceof ArrayObject || $content instanceof Arrayable) {
+            $this->content = $formatter->formatArray($content);
+        } elseif (is_string($content)) {
+            $this->content = $content;
+        } else {            
             if (! empty($defaultContentType)) {
                 $this->headers->set('Content-Type', $defaultContentType);
             }
