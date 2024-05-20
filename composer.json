@@ -1,5 +1,5 @@
 {
-    "name": "jemmy/dingo-api",
+    "name": "tecnolive/dingo-api",
     "description": "A RESTful API package for the Laravel and Lumen frameworks.",
     "keywords": [
         "api",
@@ -67,6 +67,6 @@
     "config": {
         "sort-packages": true
     },
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "prefer-stable": true
 }
